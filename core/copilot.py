@@ -4,6 +4,7 @@ import pandas as pd
 from agents.missing_data import MissingDataAgent
 from agents.outliers import OutlierDetectionAgent
 from agents.inconsistencies import InconsistencyAgent
+from reports.report_generator import ReportGenerator
 
 class DataCopilot:
     def __init__(self, source):
@@ -42,9 +43,43 @@ class DataCopilot:
         print("\n✅ Agentes executados com sucesso.")
 
     def ask(self, instruction):
-        print(f"\n💬 Interpretação da instrução: '{instruction}'")
-        # Placeholder para integração futura com LLM/chatbot
-        print("(Funcionalidade de linguagem natural em desenvolvimento)")
+        print(f"\n💬 Instrução recebida: '{instruction}'")
+        instruction = instruction.lower()
+
+        if "remova colunas com mais de" in instruction and "% de nas" in instruction:
+            try:
+                import re
+                match = re.search(r"(\d+)% de nas", instruction)
+                if match:
+                    threshold = int(match.group(1)) / 100
+                    missing_pct = self.df.isna().sum() / len(self.df)
+                    cols_to_drop = missing_pct[missing_pct > threshold].index.tolist()
+                    self.df.drop(columns=cols_to_drop, inplace=True)
+                    print(f"🧹 Colunas removidas por excesso de NAs (> {threshold*100}%): {cols_to_drop}")
+            except Exception as e:
+                print(f"⚠️ Erro ao interpretar comando: {e}")
+
+        elif "padronize formato de telefone" in instruction:
+            import re
+            if 'phone' in self.df.columns:
+                self.df['phone'] = self.df['phone'].astype(str).apply(lambda x: re.sub(r'\D', '', x))
+                print("📞 Telefones padronizados: apenas dígitos mantidos")
+            else:
+                print("📞 Coluna 'phone' não encontrada no dataset")
+
+        elif "mostre boxplot da coluna" in instruction:
+            import re
+            match = re.search(r"boxplot da coluna ([\w_]+)", instruction)
+            if match:
+                col = match.group(1)
+                if col in self.df.columns:
+                    agent = OutlierDetectionAgent(self.df)
+                    agent.visualize_boxplot(col)
+                else:
+                    print(f"📊 Coluna '{col}' não encontrada no dataset")
+
+        else:
+            print("❓ Instrução não reconhecida. Tente comandos como:\n - Remova colunas com mais de 30% de NAs\n - Padronize formato de telefone\n - Mostre boxplot da coluna preco")
 
     def visualize(self, target):
         print(f"\n📊 Gerando visualização: {target}")
@@ -60,7 +95,5 @@ class DataCopilot:
 
     def generate_report(self, output_path):
         print(f"\n📝 Gerando relatório em: {output_path}")
-        with open(output_path, 'w') as f:
-            for key, report in self.reports.items():
-                f.write(f"\n--- {key.upper()} ---\n")
-                f.write(str(report))
+        generator = ReportGenerator()
+        generator.generate(self.reports, output_path)

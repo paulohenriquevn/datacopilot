@@ -17,4 +17,4 @@ dcop.visualize("outliers")
 dcop.ask("Remova colunas com mais de 30% de valores ausentes")
 
 # Etapa 5: Geração de relatório com os resultados
-dcop.generate_report("output/relatorio_ecommerce.txt")
+dcop.generate_report("output/report.html")

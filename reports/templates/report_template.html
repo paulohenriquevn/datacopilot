@@ -1,0 +1,29 @@
+<!-- datacopilot/reports/templates/report_template.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Qualidade dos Dados</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+        h1 { color: #333; }
+        h2 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        pre { background: #fff; padding: 10px; border: 1px solid #ddd; overflow-x: auto; }
+        section { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <h1>📊 Relatório de Qualidade dos Dados</h1>
+
+    {% for section, data in report.items() %}
+    <section>
+        <h2>{{ section.replace('_', ' ').title() }}</h2>
+        <pre>{{ data | pprint }}</pre>
+    </section>
+    {% endfor %}
+
+    <footer>
+        <p>Gerado automaticamente pelo DataCopilot.</p>
+    </footer>
+</body>
+</html>
